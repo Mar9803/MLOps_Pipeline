@@ -80,3 +80,35 @@ def csv_to_dataframe(file) -> dict | None:
     except Exception as e:
         print(f"Errore: {e}")
         return None, None
+    
+
+# Business-logic API2:  Analisi del dataset per proposta modello da usare 
+
+def suggest_models(df, target=None):
+    models = []
+
+    if target is None:
+        # Nessun target → clustering
+        if df.shape[1] > 2: #columns > 2
+            models.append("KMeans")
+            models.append("DBSCAN")
+        else:
+            models.append("AgglomerativeClustering")
+    else:
+        target_dtype = df[target].dtype #taking the column type: if numeric--> regr; if categ--> class.
+        if target_dtype in ['int64', 'float64']:
+            # Regressione
+            models.append("LinearRegression")
+            if df.shape[0] > 1000:
+                models.append("RandomForestRegressor")
+                models.append("XGBoostRegressor")
+        elif target_dtype == 'object' or df[target].nunique() < 20: #pd.nuniqie() conta categorie in una colonna
+            # Classificazione
+            if df[target].nunique() == 2:
+                models.append("LogisticRegression")
+                models.append("RandomForestClassifier")
+            else:
+                models.append("MultinomialLogisticRegression")
+                models.append("GradientBoostingClassifier")
+
+    return models

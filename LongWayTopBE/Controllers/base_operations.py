@@ -6,11 +6,11 @@ from flask_cors import CORS
 app = Flask(__name__, instance_relative_config=True)
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173", "http://localhost:3000"]}})
 
-
 @app.route('/')
 def home():
     return "Welcome to Flask with Docker!"
 
+# API che salva il file csv caricato dal client
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
 
@@ -37,7 +37,35 @@ def upload_file():
     response_data.update({"file_path": file_path})
 
     return jsonify(response_data), 200
+
+@app.route('/api/models', methods=['GET'])
+def list_models():
+    file_path = request.args.get("file_path")
+    if not file_path:
+        return jsonify({"error": "File path mancante"}), 400
+
+    try:
+        df = pd.read_csv(file_path)  # rileggi il dataset
+        models = suggest_models(df)  # business logic nel service
+        return jsonify({"models": models}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
+
+# API che rilegge il file appena caricato e suggerisce il modello adatto
+@app.route('/api/models/suggest', methods=['GET'])
+def list_models():
+    file_path = request.args.get("file_path")
+    if not file_path:
+        return jsonify({"error": "File path mancante"}), 400
+
+    try:
+        df = pd.read_csv(file_path)  # rileggi il dataset
+        models = suggest_models(df)  # business logic nel service
+        return jsonify({"models": models}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
-    
+
 def get_app():
     return app
+
